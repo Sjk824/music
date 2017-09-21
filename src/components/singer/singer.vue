@@ -1,12 +1,13 @@
 <template>
   <div class="singer">
-    我是singer
+    <Listview :data="singerList"></Listview>
   </div>
 </template>
 
 <script>
   import {getSingerList} from 'api/singer';
   import {ERR_OK} from 'api/config';
+  import Listview from '../listview/listview';
 
   const HOT_SINGER_LEN = 10;
   const HOT_NAME = '热门';
@@ -25,7 +26,6 @@
         getSingerList().then( (res) => {
           if(res.code === ERR_OK){
             this.singerList = this._normalizeSinger(res.data.list);
-            console.log(res.data.list,this.singerList);
           }
         });
       },
@@ -70,6 +70,9 @@
         });
         return hot.concat(ret);
       }
+    },
+    components: {
+      Listview
     }
   };
 
