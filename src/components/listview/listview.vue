@@ -11,10 +11,13 @@
         </uL>
       </li>
     </ul>
+    <div class="list-fixed" ref="fixedTitle">
+      <div class="fixed-title">{{navigation[currentIndex]}}</div>
+    </div>
     <div class="list-shortcut">
       <ul>
         <li v-for="(item, index) in navigation" :data-index="index" class="item" ref="navigation"
-            :class="{'current':currentIndex===index}" @touchstart="touchstart(index)">{{item}}
+            :class="{'current':currentIndex===index}" @touchstart.prevent="touchstart(index)">{{item}}
         </li>
       </ul>
     </div>
@@ -22,7 +25,8 @@
 </template>
 
 <script>
-  const HOT = '热';
+  const HOT = '热',
+    TITLE_HEIGHT = 29;
 
   export default {
     props: {
@@ -34,11 +38,14 @@
     data() {
       return {
         currentIndex: 0,
-        touchstartPosY: 0
+        scrollY: 0
       };
     },
     mounted() {
       this.$nextTick(this._listenerScroll);
+    },
+    activated() {
+      this.$refs.listUl.scrollTop = this.scrollY;
     },
     computed: {
       listGroupHeight() {
@@ -63,10 +70,24 @@
         return navigationTop;
       }
     },
+    watch: {
+      scrollY(val) {
+        const fixedTitle = this.$refs.fixedTitle;
+        if(this.currentIndex === this.listGroupHeight.length - 1){
+          fixedTitle.style.top = '0px';
+          return;
+        }
+        if( val >= this.listGroupHeight[this.currentIndex] && val < this.listGroupHeight[this.currentIndex+1] - TITLE_HEIGHT){
+          fixedTitle.style.top !== '0px' ? fixedTitle.style.top = '0px' : null;
+        }else{
+          fixedTitle.style.top = this.listGroupHeight[this.currentIndex+1] - val -TITLE_HEIGHT + 'px';
+        }
+      }
+    },
     methods: {
       selectItem() {},
       touchstart(index) {
-        this._scroll(index);
+        this._changePosition(index);
         this._bindTouchmove();
       },
       _bindTouchmove() {
@@ -77,7 +98,7 @@
         const touchmoveY = e.touches[0].pageY;
         this.navigationTop.some((height,index) => {
           if(touchmoveY >= height && (touchmoveY < this.navigationTop[index + 1] || index === this.navigationTop.length-1) ){
-            this._scroll(index);
+            this._changePosition(index);
             return true;
           }
         });
@@ -86,15 +107,17 @@
         document.removeEventListener('touchmove', this._touchmove, false);
         document.removeEventListener('touchend', this._offTouchEvent, false);
       },
-      _scroll(index) {
+      _changePosition(index) {
         this.currentIndex = index;
         this.$refs.listUl.scrollTop = this.listGroupHeight[index];
+        this.scrollY = this.listGroupHeight[index]; // 记录当前滚动的位置
       },
       _listenerScroll() {
         this.$refs.listUl.addEventListener('scroll', this._calcCurrentIndex, false);
       },
       _calcCurrentIndex() {
         const scrollTop = this.$refs.listUl.scrollTop;
+        this.scrollY = scrollTop; // 记录当前滚动的位置
         this.listGroupHeight.some((height,index) => {
           if(scrollTop >= height && (scrollTop < this.listGroupHeight[index + 1] || index === this.listGroupHeight.length-1) ){
             this.currentIndex = index;
@@ -112,6 +135,7 @@
   .listview
     position: relative
     height: 100%
+    overflow: hidden
     background: $color-background
     .list-ul
       position: relative

@@ -1,6 +1,6 @@
 <template>
   <div class="recommend">
-    <div class="recommend-content noscroll-bar">
+    <div class="recommend-content noscroll-bar" ref="recommendContent">
       <div v-if="recommends.length" class="slider-wrapper " ref="sliderWrapper">
         <Slider>
           <div v-for="item in recommends">
@@ -41,12 +41,19 @@
     data() {
       return {
         recommends: [],
-        discList: []
+        discList: [],
+        scrollY: 0
       };
     },
     created() {
       this._recommend();
       this._discList();
+    },
+    mounted() {
+      this.$nextTick(this._listenerScroll);
+    },
+    activated() {
+      this.$refs.recommendContent.scrollTop = this.scrollY;
     },
     methods: {
       _recommend() {
@@ -62,6 +69,11 @@
             this.discList = res.data.list;
           }
         });
+      },
+      _listenerScroll() {
+        this.$refs.recommendContent.addEventListener('scroll', () => {
+          this.scrollY = this.$refs.recommendContent.scrollTop;
+        }, false);
       },
       selectItem(item) {}
     },
