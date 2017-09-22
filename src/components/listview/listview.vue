@@ -11,7 +11,7 @@
         </uL>
       </li>
     </ul>
-    <div class="list-fixed" ref="fixedTitle">
+    <div class="list-fixed" ref="fixedTitle" v-show="navigation.length">
       <div class="fixed-title">{{navigation[currentIndex]}}</div>
     </div>
     <div class="list-shortcut">
@@ -21,10 +21,14 @@
         </li>
       </ul>
     </div>
+    <div class="loading-container" v-if="!navigation.length">
+        <Loading></Loading>
+      </div>
   </div>
 </template>
 
 <script>
+  import Loading from 'base/loading';
   const HOT = '热',
     TITLE_HEIGHT = 29;
 
@@ -125,6 +129,9 @@
           }
         });
       }
+    },
+    components: {
+      Loading
     }
   };
 </script>
