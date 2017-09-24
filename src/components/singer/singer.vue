@@ -1,6 +1,7 @@
 <template>
   <div class="singer">
-    <Listview :data="singerList"></Listview>
+    <Listview :data="singerList" @select="selectSinger"></Listview>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -10,7 +11,7 @@
   import Listview from '../listview/listview';
 
   const HOT_SINGER_LEN = 10;
-  const HOT_NAME = '热门';
+  const HOT_NAME = '热';
 
   export default {
     data() {
@@ -22,6 +23,11 @@
       this._getSingerList();
     },
     methods: {
+      selectSinger(singer) {
+        this.$router.push({
+          path: `/singer/${singer.id}`
+        });
+      },
       _getSingerList() {
         getSingerList().then( (res) => {
           if(res.code === ERR_OK){

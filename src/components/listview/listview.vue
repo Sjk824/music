@@ -22,8 +22,8 @@
       </ul>
     </div>
     <div class="loading-container" v-if="!navigation.length">
-        <Loading></Loading>
-      </div>
+      <Loading></Loading>
+    </div>
   </div>
 </template>
 
@@ -89,7 +89,9 @@
       }
     },
     methods: {
-      selectItem() {},
+      selectItem(item) {
+        this.$emit('select', item);
+      },
       touchstart(index) {
         this._changePosition(index);
         this._bindTouchmove();
