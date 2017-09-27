@@ -13,6 +13,17 @@ export function addClass(el, className) {
   el.className = newClass.join(' ');
 };
 
+export function removeClass(el, className){
+  if (!hasClass(el, className)) {
+    return;
+  };
+
+  let newClass = el.className.split(' ').filter((item) => {
+    return item !== className;
+  });
+  el.className = newClass.join(' ');
+};
+
 export function getData(el, name, val) {
   const prefix = 'data-';
   if (val) {

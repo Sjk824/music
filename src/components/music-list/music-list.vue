@@ -1,6 +1,5 @@
 <template>
   <div class="music-list">
-    <div class="bg-layer" ref="layer"></div>
     <div class="bg-image" ref="bgImage" :style="bgStyle">
       <div class="play-wrapper">
         <div ref="playBtn" v-show="songs.length>0" class="play" @click="random">
@@ -10,18 +9,25 @@
       </div>
       <div class="filter" ref="filter"></div>
     </div>
-    <div class="back" @click="back">
-      <i class="icon-back"></i>
-    </div>
-    <h1 class="title" v-html="title"></h1>
-    <div class="song-list-wrapper noscroll-bar" ref="songlist" @touchstart="touchStart">
-      <song-list :songs="songs"></song-list>
+    <div class="bg-layer" ref="layer"></div>
+    <scroll :probe-type="probeType" :listen-scroll="listenScroll" :data="songs" @scroll="scroll" class="list" ref="list">
+      <div class="song-list-wrapper" ref="songlist">
+        <song-list :songs="songs"></song-list>
+      </div>
+    </scroll>
+    <div class="title-wrapper" ref="title">
+      <div class="back" @click="back">
+        <i class="icon-back"></i>
+      </div>
+      <h1 class="title" v-html="title"></h1>
     </div>
   </div>
 </template>
 
 <script>
 import SongList from 'base/song-list';
+import Scroll from 'base/scroll';
+import {addClass,removeClass} from 'common/js/dom';
 
   export default {
     props: {
@@ -40,14 +46,16 @@ import SongList from 'base/song-list';
     },
     data() {
       return {
-        songListTop: 0,
-        touchPosY: 0,
-        songListStartTop: 0
+        songListStartTop: 0,
+        probeType: 3,
+        listenScroll: true,
+        titleHeight: 40
       };
     },
     mounted() {
       this.songListStartTop = this.$refs.bgImage.clientHeight;
-      this.$refs.songlist.style.top = this.songListStartTop + 'px';
+      this.$refs.list.$el.style.top = this.songListStartTop + 'px';
+      this.$refs.layer.style.top = this.songListStartTop + 'px';
     },
     computed: {
       bgStyle() {
@@ -57,29 +65,18 @@ import SongList from 'base/song-list';
     methods: {
       back() {},
       random() {},
-      scroll() {},
-      selectItem() {},
-      touchStart(e) {
-        if(parseInt(this.$refs.songlist.style.top) > 0){
-          e.preventDefault();
-          this.touchPosY = e.touches[0].pageY;
-          this.songListTop = parseInt(this.$refs.songlist.style.top);
-          document.addEventListener('touchmove', this._touchmove, false);
-          document.addEventListener('touchend', this._offTouchEvent, false);
+      scroll(pos) {
+        if(pos.y + this.songListStartTop <= this.titleHeight){
+          addClass(this.$refs.title, 'cover');
+        }else{
+          removeClass(this.$refs.title, 'cover');
         }
       },
-      _touchmove(e) {
-        const moveY = e.touches[0].pageY - this.touchPosY;
-        console.log(e.touches[0].pageY, this.songListTop + moveY);
-        this.$refs.songlist.style.top = this.songListTop + moveY + 'px';
-      },
-      _offTouchEvent(e) {
-        document.removeEventListener('touchmove', this._touchmove, false);
-        document.removeEventListener('touchend', this._offTouchEvent, false);
-      }
+      selectItem() {}
     },
     components: {
-      SongList
+      SongList,
+      Scroll
     }
   };
 </script>
@@ -95,25 +92,32 @@ import SongList from 'base/song-list';
     bottom: 0
     right: 0
     background: $color-background
-    .back
+    .title-wrapper
       position: absolute
       top: 0
-      left: 6px
-      .icon-back
-        display: block
-        padding: 10px
-        font-size: $font-size-large-x
-        color: $color-theme
-    .title
-      position: absolute
-      top: 0
-      left: 10%
-      width: 80%
-      no-wrap()
-      text-align: center
-      line-height: 40px
-      font-size: $font-size-large
-      color: $color-text
+      height: 40px
+      width: 100%
+      &.cover
+        background-color: $color-background
+      .back
+        position: absolute
+        top: 0
+        left: 6px
+        .icon-back
+          display: block
+          padding: 10px
+          font-size: $font-size-large-x
+          color: $color-theme
+      .title
+        position: absolute
+        top: 0
+        left: 10%
+        width: 80%
+        no-wrap()
+        text-align: center
+        line-height: 40px
+        font-size: $font-size-large
+        color: $color-text
     .bg-image
       position: absolute
       top: 0
@@ -157,15 +161,16 @@ import SongList from 'base/song-list';
       position: relative
       height: 100%
       background: $color-background
-    .song-list-wrapper
+    .list
       position: absolute
       box-sizing: border-box
-      padding: 20px 30px
       top: 0
       bottom: 0
       width: 100%
-      overflow-y: scroll
       background: $color-background
+      .song-list-wrapper
+        padding: 20px 30px
+        background: $color-background
     .loading-container
       position: absolute
       width: 100%
