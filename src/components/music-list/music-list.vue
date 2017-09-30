@@ -14,6 +14,9 @@
       <div class="song-list-wrapper" ref="songlist">
         <song-list :songs="songs"></song-list>
       </div>
+      <div class="loading-wrapper" v-show="songs.length === 0">
+        <loading></loading>
+      </div>
     </scroll>
     <div class="title-wrapper" ref="title">
       <div class="back" @click="back">
@@ -25,9 +28,12 @@
 </template>
 
 <script>
-import SongList from 'base/song-list';
-import Scroll from 'base/scroll';
-import {addClass,removeClass} from 'common/js/dom';
+  import SongList from 'base/song-list';
+  import Scroll from 'base/scroll';
+  import {addClass,removeClass,prefixStyle} from 'common/js/dom';
+  import Loading from 'base/loading';
+
+  const transformPrefix = prefixStyle('transform');
 
   export default {
     props: {
@@ -63,7 +69,9 @@ import {addClass,removeClass} from 'common/js/dom';
       }
     },
     methods: {
-      back() {},
+      back() {
+        this.$router.back();
+      },
       random() {},
       scroll(pos) {
         if(pos.y + this.songListStartTop <= this.titleHeight){
@@ -71,12 +79,18 @@ import {addClass,removeClass} from 'common/js/dom';
         }else{
           removeClass(this.$refs.title, 'cover');
         }
+        if(pos.y > 0){
+          const per = 1 + pos.y / this.songListStartTop;
+          this.$refs.bgImage.style[transformPrefix] = `scale(${per})`;
+          this.$refs.layer.style[transformPrefix] = `translate3d(0px, ${pos.y}px, 0)`;
+        }
       },
       selectItem() {}
     },
     components: {
       SongList,
-      Scroll
+      Scroll,
+      Loading
     }
   };
 </script>
@@ -167,11 +181,10 @@ import {addClass,removeClass} from 'common/js/dom';
       top: 0
       bottom: 0
       width: 100%
-      background: $color-background
       .song-list-wrapper
         padding: 20px 30px
         background: $color-background
-    .loading-container
+    .loading-wrapper
       position: absolute
       width: 100%
       top: 50%
