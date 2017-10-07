@@ -12,7 +12,7 @@
     <div class="bg-layer" ref="layer"></div>
     <scroll :probe-type="probeType" :listen-scroll="listenScroll" :data="songs" @scroll="scroll" class="list" ref="list">
       <div class="song-list-wrapper" ref="songlist">
-        <song-list :songs="songs"></song-list>
+        <song-list :songs="songs" @select="selectItem"></song-list>
       </div>
       <div class="loading-wrapper" v-show="songs.length === 0">
         <loading></loading>
@@ -32,6 +32,7 @@
   import Scroll from 'base/scroll';
   import {addClass,removeClass,prefixStyle} from 'common/js/dom';
   import Loading from 'base/loading';
+  import {mapActions} from 'vuex';
 
   const transformPrefix = prefixStyle('transform');
 
@@ -85,7 +86,15 @@
           this.$refs.layer.style[transformPrefix] = `translate3d(0px, ${pos.y}px, 0)`;
         }
       },
-      selectItem() {}
+      selectItem(item, index) {
+        this.selectPlay({
+          list: this.songs,
+          index
+        });
+      },
+      ...mapActions([
+        'selectPlay'
+      ])
     },
     components: {
       SongList,
