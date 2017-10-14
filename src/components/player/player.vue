@@ -1,79 +1,89 @@
 <template>
   <div class="player" v-show="playList.length>0">
-    <div class="normal-player" v-show="fullScreen">
-      <div class="background">
-        <img width="100%" height="100%" :src="currentSong.image">
-      </div>
-      <div class="top">
-        <div class="back" @click="back">
-          <i class="icon-back"></i>
+    <transition name="normal"
+      @before-enter = "beforeEnter"
+      @enter = "enter"
+      @before-leave = "beforeLeave"
+      @leave = "leave"
+      @after-leave = "afterLeave"
+    >
+      <div class="normal-player" v-show="fullScreen">
+        <div class="background">
+          <img width="100%" height="100%" :src="currentSong.image">
         </div>
-        <h1 class="title" v-html="currentSong.name"></h1>
-        <h2 class="subtitle" v-html="currentSong.singer"></h2>
-      </div>
-      <div class="middle">
-        <div class="middle-l" ref="middleL">
-          <div class="cd-wrapper" ref="cdWrapper">
-            <div class="cd">
-              <img class="image" :src="currentSong.image">
+        <div class="top">
+          <div class="back" @click="back">
+            <i class="icon-back"></i>
+          </div>
+          <h1 class="title" v-html="currentSong.name"></h1>
+          <h2 class="subtitle" v-html="currentSong.singer"></h2>
+        </div>
+        <div class="middle">
+          <div class="middle-l" ref="middleL">
+            <div class="cd-wrapper" ref="cdWrapper">
+              <div class="cd">
+                <img class="image" :src="currentSong.image" ref="normalImage">
+              </div>
+            </div>
+            <div class="playing-lyric-wrapper">
+              <div class="playing-lyric"></div>
             </div>
           </div>
-          <div class="playing-lyric-wrapper">
-            <div class="playing-lyric"></div>
-          </div>
+          <scroll class="middle-r" ref="lyricList">
+            <div class="lyric-wrapper">
+              <div>
+                <p ref="lyricLine" class="text"></p>
+              </div>
+            </div>
+          </scroll>
         </div>
-        <scroll class="middle-r" ref="lyricList">
-          <div class="lyric-wrapper">
-            <div>
-              <p ref="lyricLine" class="text"></p>
+        <div class="bottom">
+          <div class="dot-wrapper">
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+          <div class="progress-wrapper">
+            <span class="time time-l"></span>
+            <div class="progress-bar-wrapper">
+            </div>
+            <span class="time time-r"></span>
+          </div>
+          <div class="operators">
+            <div class="icon i-left">
+              <i class="iconMode"></i>
+            </div>
+            <div class="icon i-left">
+              <i class="icon-prev"></i>
+            </div>
+            <div class="icon i-center" >
+              <i class="playIcon"></i>
+            </div>
+            <div class="icon i-right">
+              <i class="icon-next"></i>
+            </div>
+            <div class="icon i-right">
+              <i class="icon"></i>
             </div>
           </div>
-        </scroll>
-      </div>
-      <div class="bottom">
-        <div class="dot-wrapper">
-          <span class="dot"></span>
-          <span class="dot"></span>
-        </div>
-        <div class="progress-wrapper">
-          <span class="time time-l"></span>
-          <div class="progress-bar-wrapper">
-          </div>
-          <span class="time time-r"></span>
-        </div>
-        <div class="operators">
-          <div class="icon i-left">
-            <i class="iconMode"></i>
-          </div>
-          <div class="icon i-left">
-            <i class="icon-prev"></i>
-          </div>
-          <div class="icon i-center" >
-            <i class="playIcon"></i>
-          </div>
-          <div class="icon i-right">
-            <i class="icon-next"></i>
-          </div>
-          <div class="icon i-right">
-            <i class="icon"></i>
-          </div>
         </div>
       </div>
-    </div>
-    <div class="mini-player" v-show="!fullScreen" @click="open">
-      <div class="icon">
-        <img width="40" height="40">
+    </transition>
+    <transition name="mini">
+      <div class="mini-player" v-show="!fullScreen" @click="open">
+        <div class="icon">
+          <img width="40" height="40" ref="miniImage">
+        </div>
+        <div class="text">
+          <h2 class="name"></h2>
+          <p class="desc"></p>
+        </div>
+        <div class="control">
+        </div>
+        <div class="control">
+          <i class="icon-playlist"></i>
+        </div>
       </div>
-      <div class="text">
-        <h2 class="name"></h2>
-        <p class="desc"></p>
-      </div>
-      <div class="control">
-      </div>
-      <div class="control">
-        <i class="icon-playlist"></i>
-      </div>
-    </div>
+    </transition>
   </div>
 </template>
 
@@ -95,6 +105,49 @@
       },
       open() {
         this.setFullScreen(true);
+      },
+      transformArgs() {
+        const miniRect = this.$refs.miniImage.getBoundingClientRect(),
+          miniWidth = this.$refs.miniImage.clientWidth,
+          miniLeft = miniRect.left,
+          miniTop = miniRect.top,
+          normalRect = this.$refs.normalImage.getBoundingClientRect(),
+          normalLeft = normalRect.left,
+          normalTop = normalRect.top,
+          normalWidth = this.$refs.normalImage.clientWidth;
+
+          return {
+            transformX: miniLeft - normalLeft - ( normalWidth - miniWidth ) / 2,
+            transformY: miniTop - normalTop,
+            scale: miniWidth / normalWidth
+          };
+      },
+      beforeEnter() {
+        this.$refs.normalImage.style.transition = '';
+      },
+      enter() {
+        const transformArgs = this.transformArgs();
+        this.$refs.normalImage.style.transform = `translate3d(${transformArgs.transformX}px, ${transformArgs.transformY}px, 0) scale(${transformArgs.scale})`;
+        /* eslint-disable no-unused-vars */
+        let rh = this.$refs.normalImage.offsetHeight;// 触发重绘
+        this.$refs.normalImage.style.transition = 'all 0.4s linear';
+        this.$refs.normalImage.style.transform = 'translate3d( 0px, 0px, 0) scale(1)';
+      },
+      beforeLeave() {
+        this.$refs.normalImage.style.transition = '';
+      },
+      leave() {
+        this.$nextTick(() => {
+          this.$refs.normalImage.style.transform = 'translate3d( 0px, 0px, 0) scale(1)';
+          /* eslint-disable no-unused-vars */
+          let rh = this.$refs.normalImage.offsetHeight;// 触发重绘
+          const transformArgs = this.transformArgs();
+          this.$refs.normalImage.style.transition = 'all 0.4s linear';
+          this.$refs.normalImage.style.transform = `translate3d(${transformArgs.transformX}px, ${transformArgs.transformY}px, 0) scale(${transformArgs.scale})`;
+        });
+      },
+      afterLeave() {
+        this.$refs.normalImage.style.transform = 'translate3d( 0px, 0px, 0) scale(1)';
       },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN'
