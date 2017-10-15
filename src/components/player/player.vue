@@ -1,11 +1,12 @@
 <template>
   <div class="player" v-show="playList.length>0">
     <transition name="normal"
-      @before-enter = "beforeEnter"
+      @before-enter = "initialPosition"
       @enter = "enter"
-      @before-leave = "beforeLeave"
+      @after-enter = "initialPosition"
+      @before-leave = "initialPosition"
       @leave = "leave"
-      @after-leave = "afterLeave"
+      @after-leave = "initialPosition"
     >
       <div class="normal-player" v-show="fullScreen">
         <div class="background">
@@ -71,7 +72,7 @@
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="open">
         <div class="icon">
-          <img width="40" height="40" ref="miniImage">
+          <img width="40" height="40" :src="currentSong.image" ref="miniImage">
         </div>
         <div class="text">
           <h2 class="name"></h2>
@@ -109,21 +110,20 @@
       transformArgs() {
         const miniRect = this.$refs.miniImage.getBoundingClientRect(),
           miniWidth = this.$refs.miniImage.clientWidth,
+          miniHeight = this.$refs.miniImage.clientHeight,
           miniLeft = miniRect.left,
           miniTop = miniRect.top,
           normalRect = this.$refs.normalImage.getBoundingClientRect(),
           normalLeft = normalRect.left,
           normalTop = normalRect.top,
-          normalWidth = this.$refs.normalImage.clientWidth;
+          normalWidth = this.$refs.normalImage.clientWidth,
+          normalHeight = this.$refs.normalImage.clientHeight;
 
           return {
             transformX: miniLeft - normalLeft - ( normalWidth - miniWidth ) / 2,
-            transformY: miniTop - normalTop,
+            transformY: miniTop - normalTop - ( normalHeight - miniHeight ) / 2,
             scale: miniWidth / normalWidth
           };
-      },
-      beforeEnter() {
-        this.$refs.normalImage.style.transition = '';
       },
       enter() {
         const transformArgs = this.transformArgs();
@@ -133,20 +133,16 @@
         this.$refs.normalImage.style.transition = 'all 0.4s linear';
         this.$refs.normalImage.style.transform = 'translate3d( 0px, 0px, 0) scale(1)';
       },
-      beforeLeave() {
-        this.$refs.normalImage.style.transition = '';
-      },
       leave() {
         this.$nextTick(() => {
           this.$refs.normalImage.style.transform = 'translate3d( 0px, 0px, 0) scale(1)';
-          /* eslint-disable no-unused-vars */
-          let rh = this.$refs.normalImage.offsetHeight;// 触发重绘
           const transformArgs = this.transformArgs();
           this.$refs.normalImage.style.transition = 'all 0.4s linear';
           this.$refs.normalImage.style.transform = `translate3d(${transformArgs.transformX}px, ${transformArgs.transformY}px, 0) scale(${transformArgs.scale})`;
         });
       },
-      afterLeave() {
+      initialPosition() {
+        this.$refs.normalImage.style.transition = '';
         this.$refs.normalImage.style.transform = 'translate3d( 0px, 0px, 0) scale(1)';
       },
       ...mapMutations({
