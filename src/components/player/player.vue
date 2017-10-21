@@ -22,8 +22,8 @@
         <div class="middle">
           <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
-              <div class="cd">
-                <img class="image" :src="currentSong.image" ref="normalImage">
+              <div class="cd" ref="normalImage">
+                <img class="image" :class="rotating" :src="currentSong.image">
               </div>
             </div>
             <div class="playing-lyric-wrapper">
@@ -51,19 +51,19 @@
           </div>
           <div class="operators">
             <div class="icon i-left">
-              <i class="iconMode"></i>
+              <i class="icon-sequence"></i>
             </div>
-            <div class="icon i-left">
-              <i class="icon-prev"></i>
+            <div class="icon i-left" :class="disableCls">
+              <i  @click="pre" class="icon-prev"></i>
             </div>
-            <div class="icon i-center" >
-              <i class="playIcon"></i>
+            <div class="icon i-center" :class="disableCls">
+              <i @click="togglePlaying" :class="playIcon"></i>
+            </div>
+            <div class="icon i-right" :class="disableCls">
+              <i  @click="next" class="icon-next"></i>
             </div>
             <div class="icon i-right">
-              <i class="icon-next"></i>
-            </div>
-            <div class="icon i-right">
-              <i class="icon"></i>
+              <i class="icon icon-not-favorite"></i>
             </div>
           </div>
         </div>
@@ -72,19 +72,21 @@
     <transition name="mini">
       <div class="mini-player" v-show="!fullScreen" @click="open">
         <div class="icon">
-          <img width="40" height="40" :src="currentSong.image" ref="miniImage">
+          <img width="40" height="40" :src="currentSong.image" ref="miniImage" :class="rotating">
         </div>
         <div class="text">
-          <h2 class="name"></h2>
-          <p class="desc"></p>
+          <h2 class="name" v-html="currentSong.name"></h2>
+          <p class="desc" v-html="currentSong.singer"></p>
         </div>
         <div class="control">
+          <i @click.stop="togglePlaying" :class="miniIcon"></i>
         </div>
         <div class="control">
           <i class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <audio :src="currentSong.url" ref = "audio" @canplay= "canPlay" @error="audioError"></audio>
   </div>
 </template>
 
@@ -92,9 +94,27 @@
   import {mapGetters, mapMutations} from 'vuex';
   import Scroll from 'base/scroll';
   export default {
+    data() {
+      return {
+        songReady: false
+      };
+    },
     computed: {
+      playIcon() {
+        return this.playing ? 'icon-pause' : 'icon-play';
+      },
+      miniIcon() {
+        return this.playing ? 'icon-pause-mini' : 'icon-play-mini';
+      },
+      rotating() {
+        return this.playing ? 'play' : 'play pause';
+      },
+      disableCls() {
+        return this.songReady ? '' : 'disable';
+      },
       ...mapGetters([
         'fullScreen',
+        'playing',
         'playList',
         'currentSong',
         'currentIndex'
@@ -106,6 +126,12 @@
       },
       open() {
         this.setFullScreen(true);
+      },
+      canPlay() {
+        this.songReady = true;
+      },
+      audioError() {
+        this.songReady = true;
       },
       transformArgs() {
         const miniRect = this.$refs.miniImage.getBoundingClientRect(),
@@ -145,9 +171,54 @@
         this.$refs.normalImage.style.transition = '';
         this.$refs.normalImage.style.transform = 'translate3d( 0px, 0px, 0) scale(1)';
       },
+      togglePlaying() {
+        this.setPlayingState(!this.playing);
+      },
+      pre() {
+        if(!this.songReady) return;
+        let index;
+        if(this.currentIndex === 0) {
+          index = this.playList.length - 1;
+        }else {
+          index = this.currentIndex - 1;
+        };
+        this.setCurrentIndex(index);
+        if(!this.playing){
+          this.togglePlaying();
+        };
+        this.songReady = false;
+      },
+      next() {
+        if(!this.songReady) return;
+        let index;
+        if(this.currentIndex === this.playList.length){
+          index = 0;
+        }else {
+          index = this.currentIndex + 1;
+        };
+        this.setCurrentIndex(index);
+        if(!this.playing){
+          this.togglePlaying();
+        };
+        this.songReady = false;
+      },
       ...mapMutations({
-        setFullScreen: 'SET_FULL_SCREEN'
+        setFullScreen: 'SET_FULL_SCREEN',
+        setPlayingState: 'SET_PLAYING',
+        setCurrentIndex: 'SET_CURRENT_INDEX'
       })
+    },
+    watch: {
+      currentSong() {
+        this.$nextTick(() => {
+          this.$refs.audio.play();
+        });
+      },
+      playing(val) {
+        this.$nextTick(() => {
+          val ? this.$refs.audio.play() : this.$refs.audio.pause();
+        });
+      }
     },
     components: {
       Scroll: Scroll
@@ -229,9 +300,9 @@
               box-sizing: border-box
               border: 10px solid rgba(255, 255, 255, 0.1)
               border-radius: 50%
-              &.play
+              .play
                 animation: rotate 20s linear infinite
-              &.pause
+              .pause
                 animation-play-state: paused
               .image
                 position: absolute
