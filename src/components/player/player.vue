@@ -46,6 +46,7 @@
           <div class="progress-wrapper">
             <span class="time time-l"></span>
             <div class="progress-bar-wrapper">
+              <progress-bar :percent="percent"></progress-bar>
             </div>
             <span class="time time-r"></span>
           </div>
@@ -86,17 +87,19 @@
         </div>
       </div>
     </transition>
-    <audio :src="currentSong.url" ref = "audio" @canplay= "canPlay" @error="audioError"></audio>
+    <audio :src="currentSong.url" ref = "audio" @canplay= "canPlay" @error="audioError" @timeupdate="timeUpdate"></audio>
   </div>
 </template>
 
 <script>
   import {mapGetters, mapMutations} from 'vuex';
   import Scroll from 'base/scroll';
+  import ProgressBar from 'base/progress-bar';
   export default {
     data() {
       return {
-        songReady: false
+        songReady: false,
+        currentTime: 0
       };
     },
     computed: {
@@ -111,6 +114,9 @@
       },
       disableCls() {
         return this.songReady ? '' : 'disable';
+      },
+      percent() {
+        return this.currentTime / this.currentSong.duration;
       },
       ...mapGetters([
         'fullScreen',
@@ -132,6 +138,9 @@
       },
       audioError() {
         this.songReady = true;
+      },
+      timeUpdate(e) {
+        this.currentTime = e.target.currentTime;
       },
       transformArgs() {
         const miniRect = this.$refs.miniImage.getBoundingClientRect(),
@@ -221,7 +230,8 @@
       }
     },
     components: {
-      Scroll: Scroll
+      Scroll: Scroll,
+      ProgressBar: ProgressBar
     }
   };
 </script>
