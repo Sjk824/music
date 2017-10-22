@@ -25,14 +25,34 @@
     },
     methods: {
       progressClick() {},
-      progressTouchStart() {},
-      progressTouchMove() {},
-      progressTouchEnd() {}
+      progressTouchStart(e) {
+        if(e.touches.length > 1) {
+          return;
+        };
+        this.touching = true;
+      },
+      progressTouchMove(e) {
+        if(!this.touching) {
+          return;
+        }
+        this.translateX = e.touches[0].pageX - this.$refs.barInner.getBoundingClientRect().left;
+        this.$refs.progress.style.transform = `scaleX(${this.translateX / this.barWidth})`;
+        this.$refs.progressBtn.style.transform = `translateX(${this.translateX}px)`;
+      },
+      progressTouchEnd(e) {
+        if(!this.touching) {
+          return;
+        }
+        this.$emit('progress', this.translateX / this.barWidth);
+        this.touching = false;
+      }
     },
     watch: {
       percent(val) {
+        if(this.touching){
+          return;
+        };
         this.$refs.progress.style.transform = `scaleX(${val})`;
-        console.log(this.barWidth);
         this.$refs.progressBtn.style.transform = `translateX(${val * this.barWidth}px)`;
       }
     }
@@ -48,7 +68,7 @@
       position: relative
       top: 13px
       height: 4px
-      margin: 0 6px
+      margin: 0 12px
       background: rgba(0, 0, 0, 0.3)
       .progress
         position: absolute

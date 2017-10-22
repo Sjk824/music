@@ -44,11 +44,11 @@
             <span class="dot"></span>
           </div>
           <div class="progress-wrapper">
-            <span class="time time-l"></span>
+            <span class="time time-l">{{currentTiming}}</span>
             <div class="progress-bar-wrapper">
-              <progress-bar :percent="percent"></progress-bar>
+              <progress-bar :percent="percent" @progress="progressing"></progress-bar>
             </div>
-            <span class="time time-r"></span>
+            <span class="time time-r">{{durationTiming}}</span>
           </div>
           <div class="operators">
             <div class="icon i-left">
@@ -118,6 +118,12 @@
       percent() {
         return this.currentTime / this.currentSong.duration;
       },
+      currentTiming() {
+        return this._timing(this.currentTime);
+      },
+      durationTiming() {
+        return this._timing(this.currentSong.duration);
+      },
       ...mapGetters([
         'fullScreen',
         'playing',
@@ -127,6 +133,19 @@
       ])
     },
     methods: {
+      _timing(time) {
+        time = time | 0;
+        return this._pad((time / 60) | 0) + ':' + this._pad((time % 60) | 0);
+      },
+      _pad(num, n = 2) {
+        num = num + '';
+        let len = num.length;
+        while(len < n) {
+          num = '0' + num;
+          len++;
+        };
+        return num;
+      },
       back() {
         this.setFullScreen(false);
       },
@@ -210,6 +229,9 @@
           this.togglePlaying();
         };
         this.songReady = false;
+      },
+      progressing(percent) {
+        this.$refs.audio.currentTime = percent * this.currentSong.duration;
       },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
