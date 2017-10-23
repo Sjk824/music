@@ -87,7 +87,7 @@
         </div>
       </div>
     </transition>
-    <audio :src="currentSong.url" ref = "audio" @canplay= "canPlay" @error="audioError" @timeupdate="timeUpdate"></audio>
+    <audio :src="currentSong.url" ref = "audio" @canplay= "canPlay" @error="audioError" @timeupdate="timeUpdate" @ended="ended"></audio>
   </div>
 </template>
 
@@ -160,6 +160,9 @@
       },
       timeUpdate(e) {
         this.currentTime = e.target.currentTime;
+      },
+      ended() {
+        this.next();
       },
       transformArgs() {
         const miniRect = this.$refs.miniImage.getBoundingClientRect(),

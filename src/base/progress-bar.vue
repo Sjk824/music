@@ -24,7 +24,10 @@
       }
     },
     methods: {
-      progressClick() {},
+      progressClick(e) {
+        const translateX = e.pageX - this.$refs.barInner.getBoundingClientRect().left;
+        this.$emit('progress', translateX / this.barWidth);
+      },
       progressTouchStart(e) {
         if(e.touches.length > 1) {
           return;
@@ -35,7 +38,14 @@
         if(!this.touching) {
           return;
         }
-        this.translateX = e.touches[0].pageX - this.$refs.barInner.getBoundingClientRect().left;
+        const translateX = e.touches[0].pageX - this.$refs.barInner.getBoundingClientRect().left;
+        if( ( translateX > 0 ) && ( translateX < this.barWidth ) ) {
+          this.translateX = translateX;
+        }else if(translateX < 0) {
+          this.translateX = 0;
+        }else {
+          this.translateX = this.barWidth;
+        }
         this.$refs.progress.style.transform = `scaleX(${this.translateX / this.barWidth})`;
         this.$refs.progressBtn.style.transform = `translateX(${this.translateX}px)`;
       },
