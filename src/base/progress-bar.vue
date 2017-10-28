@@ -85,7 +85,7 @@
         height: 100%
         width: 100%
         transform-origin: left
-        transform: scaleX(1)
+        transform: scaleX(0)
         background: $color-theme
       .progress-btn-wrapper
         position: absolute

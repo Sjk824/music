@@ -51,8 +51,8 @@
             <span class="time time-r">{{durationTiming}}</span>
           </div>
           <div class="operators">
-            <div class="icon i-left">
-              <i class="icon-sequence"></i>
+            <div class="icon i-left" @click="changeMode">
+              <i :class="modeIcon"></i>
             </div>
             <div class="icon i-left" :class="disableCls">
               <i  @click="pre" class="icon-prev"></i>
@@ -95,6 +95,9 @@
   import {mapGetters, mapMutations} from 'vuex';
   import Scroll from 'base/scroll';
   import ProgressBar from 'base/progress-bar';
+  import {playMode} from 'common/js/config';
+  import {shuffle} from 'common/js/untitled';
+
   export default {
     data() {
       return {
@@ -124,10 +127,15 @@
       durationTiming() {
         return this._timing(this.currentSong.duration);
       },
+      modeIcon() {
+        return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random';
+      },
       ...mapGetters([
         'fullScreen',
         'playing',
         'playList',
+        'sequenceList',
+        'mode',
         'currentSong',
         'currentIndex'
       ])
@@ -160,9 +168,6 @@
       },
       timeUpdate(e) {
         this.currentTime = e.target.currentTime;
-      },
-      ended() {
-        this.next();
       },
       transformArgs() {
         const miniRect = this.$refs.miniImage.getBoundingClientRect(),
@@ -219,13 +224,22 @@
         };
         this.songReady = false;
       },
+      ended() {
+        if(this.mode === playMode.loop) {
+          this.loop();
+          return;
+        }
+        this.next();
+      },
+      loop() {
+        this.$refs.audio.currentTime = 0;
+        this.$refs.audio.play();
+      },
       next() {
         if(!this.songReady) return;
-        let index;
-        if(this.currentIndex === this.playList.length){
+        let index = this.currentIndex + 1;
+        if(index === this.playList.length){
           index = 0;
-        }else {
-          index = this.currentIndex + 1;
         };
         this.setCurrentIndex(index);
         if(!this.playing){
@@ -236,14 +250,39 @@
       progressing(percent) {
         this.$refs.audio.currentTime = percent * this.currentSong.duration;
       },
+      changeMode() {
+        const mode = (this.mode + 1) % 3;
+        this.setMode(mode);
+        if(this.mode === playMode.random){
+          const playList = shuffle(this.sequenceList);
+          this._setCurrentIndex(playList);
+          this.setPlayList(playList);
+        }else if(this.mode === playMode.sequence) {
+          this._setCurrentIndex(this.sequenceList);
+          this.setPlayList(this.sequenceList);
+        }
+      },
+      _setCurrentIndex(songList) {
+        songList.some((song, index) => {
+          if(song.id === this.currentSong.id) {
+            this.setCurrentIndex(index);
+            return true;
+          }
+        });
+      },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
         setPlayingState: 'SET_PLAYING',
-        setCurrentIndex: 'SET_CURRENT_INDEX'
+        setCurrentIndex: 'SET_CURRENT_INDEX',
+        setPlayList: 'SET_PLAY_LIST',
+        setMode: 'SET_MODE'
       })
     },
     watch: {
-      currentSong() {
+      currentSong(newSong, oldSong) {
+        if(newSong.id === oldSong.id) {
+          return;
+        };
         this.$nextTick(() => {
           this.$refs.audio.play();
         });
