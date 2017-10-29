@@ -44,7 +44,6 @@ import MusicList from 'components/music-list/music-list';
             songs.push(createSong(musicData));
           }
         });
-        console.log(songs);
         return songs;
       }
     },

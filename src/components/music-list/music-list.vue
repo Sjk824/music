@@ -1,13 +1,13 @@
 <template>
   <div class="music-list">
     <div class="bg-image" ref="bgImage" :style="bgStyle">
+      <div class="filter" ref="filter"></div>
       <div class="play-wrapper">
         <div ref="playBtn" v-show="songs.length>0" class="play" @click="random">
           <i class="icon-play"></i>
           <span class="text">随机播放全部</span>
         </div>
       </div>
-      <div class="filter" ref="filter"></div>
     </div>
     <div class="bg-layer" ref="layer"></div>
     <scroll :probe-type="probeType" :listen-scroll="listenScroll" :data="songs" @scroll="scroll" class="list" ref="list">
@@ -73,7 +73,9 @@
       back() {
         this.$router.back();
       },
-      random() {},
+      random() {
+        this.selectRondomPlay(this.songs);
+      },
       scroll(pos) {
         if(pos.y + this.songListStartTop <= this.titleHeight){
           addClass(this.$refs.title, 'cover');
@@ -93,7 +95,8 @@
         });
       },
       ...mapActions([
-        'selectPlay'
+        'selectPlay',
+        'selectRondomPlay'
       ])
     },
     components: {

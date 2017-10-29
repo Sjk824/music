@@ -96,7 +96,6 @@
   import Scroll from 'base/scroll';
   import ProgressBar from 'base/progress-bar';
   import {playMode} from 'common/js/config';
-  import {shuffle} from 'common/js/untitled';
 
   export default {
     data() {
@@ -228,12 +227,27 @@
         if(this.mode === playMode.loop) {
           this.loop();
           return;
-        }
+        }else if(this.mode === playMode.random) {
+          this.random();
+          return;
+        };
         this.next();
       },
       loop() {
         this.$refs.audio.currentTime = 0;
         this.$refs.audio.play();
+      },
+      random() {
+        const len = this.playList.length;
+        if(len === 0) {
+          this.loop();
+          return;
+        };
+        let randomIndex = Math.floor( Math.random() * (len - 1) );
+        if(randomIndex >= this.currentIndex) {
+          randomIndex = randomIndex + 1;
+        }
+        this.setCurrentIndex(randomIndex);
       },
       next() {
         if(!this.songReady) return;
@@ -253,14 +267,6 @@
       changeMode() {
         const mode = (this.mode + 1) % 3;
         this.setMode(mode);
-        if(this.mode === playMode.random){
-          const playList = shuffle(this.sequenceList);
-          this._setCurrentIndex(playList);
-          this.setPlayList(playList);
-        }else if(this.mode === playMode.sequence) {
-          this._setCurrentIndex(this.sequenceList);
-          this.setPlayList(this.sequenceList);
-        }
       },
       _setCurrentIndex(songList) {
         songList.some((song, index) => {

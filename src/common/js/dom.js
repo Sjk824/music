@@ -34,32 +34,21 @@ export function getData(el, name, val) {
 
 let elementStyle = document.createElement('div').style;
 
-let vendor = (() => {
-  let transformNames = {
-    webkit: 'webkitTransform',
-    Moz: 'MozTransform',
-    O: 'OTransform',
-    ms: 'msTransform',
-    standard: 'transform'
+export function prefixStyle(style) {
+  const _style = style.charAt(0).toUpperCase() + style.substr(1);
+  const transformNames = [
+      style,
+      'webkit' + _style,
+      'Moz' + _style,
+      'o' + _style,
+      'ms' + _style
+    ];
+
+  for (let i = 0; i<transformNames.length; i++) {
+    if (elementStyle[transformNames[i]] !== undefined) {
+      return transformNames[i];
+    };
   };
 
-  for (let key in transformNames) {
-    if (elementStyle[transformNames[key]] !== undefined) {
-      return key;
-    }
-  }
-
-  return false;
-})();
-
-export function prefixStyle(style) {
-  if (vendor === false) {
-    return false;
-  }
-
-  if (vendor === 'standard') {
-    return style;
-  }
-
-  return vendor + style.charAt(0).toUpperCase() + style.substr(1);
+  return style;
 };
