@@ -27,20 +27,24 @@
               </div>
             </div>
             <div class="playing-lyric-wrapper">
-              <div class="playing-lyric"></div>
+              <div class="playing-lyric">{{currentLyric[currentLineNum].text}}</div>
             </div>
           </div>
-          <scroll class="middle-r" ref="lyricList">
-            <div class="lyric-wrapper">
-              <div>
-                <p ref="lyricLine" class="text"></p>
+          <scroll class="middle-r" ref="lyricList" :data="currentLyric">
+            <div class="lyric-wrapper" ref="lyricWrapper">
+              <div v-if="currentLyric">
+                <p ref="lyricLine"
+                   class="text"
+                   :class="{'current': currentLineNum ===index}"
+                   v-for="(currentLine,index) in currentLyric"
+                >{{currentLine.text}}</p>
               </div>
             </div>
           </scroll>
         </div>
         <div class="bottom">
           <div class="dot-wrapper">
-            <span class="dot"></span>
+            <span class="dot active"></span>
             <span class="dot"></span>
           </div>
           <div class="progress-wrapper">
@@ -101,7 +105,8 @@
     data() {
       return {
         songReady: false,
-        currentTime: 0
+        currentTime: 0,
+        currentLyric: []
       };
     },
     computed: {
@@ -128,6 +133,20 @@
       },
       modeIcon() {
         return this.mode === playMode.sequence ? 'icon-sequence' : this.mode === playMode.loop ? 'icon-loop' : 'icon-random';
+      },
+      currentLineNum() {
+        let num = 0;
+        const t = this.currentLyric.some((lyricLine, index) => {
+          if(lyricLine.time - 0 > this.currentTime) {
+            num = index - 1;
+            return true;
+          }
+        });
+        if(!t) {
+          return this.currentLyric.length - 1;
+        };
+        num = num === -1 ? 0 : num;
+        return num;
       },
       ...mapGetters([
         'fullScreen',
@@ -276,6 +295,22 @@
           }
         });
       },
+      _lyricFormat(lyric) {
+        const reg = /\[(\d{2,3}):(\d{2})\.(\d{2})\]/g;
+        const lyricList = lyric
+          .match(reg)
+          .map((item) => {
+            return {time: item.replace(reg, (a,b,c,d) => (b - 0) * 60 + (c - 0) + (d - 0)/ 100 )};
+          });
+        const lyricText = lyric.split(/\[\d{2,3}:\d{2}\.\d{2}\]/g);
+        for(let i = 1; i < lyricText.length; i++){
+          if(!lyricList[i-1]) {
+            break;
+          };
+          lyricList[i-1].text = lyricText[i].trim();
+        };
+        return lyricList;
+      },
       ...mapMutations({
         setFullScreen: 'SET_FULL_SCREEN',
         setPlayingState: 'SET_PLAYING',
@@ -292,13 +327,35 @@
         this.$nextTick(() => {
           this.$refs.audio.play();
           newSong.getLyric().then((lyric) => {
-            console.log(lyric);
+            this.currentLyric = this._lyricFormat(lyric);
           });
         });
       },
       playing(val) {
         this.$nextTick(() => {
           val ? this.$refs.audio.play() : this.$refs.audio.pause();
+        });
+      },
+      currentLineNum(val) {
+        this.$nextTick(() => {
+          if(!this.$refs.lyricList.$el || !this.$refs.lyricLine) {
+            return;
+          };
+          const lines = this.$refs.lyricLine,
+            listHeight = this.$refs.lyricList.$el.clientHeight,
+            itemHeight = lines[val].clientHeight;
+
+          if(itemHeight === 0)return;
+
+          const wrapperHeight = this.$refs.lyricWrapper.clientHeight,
+            itemTop = lines[val].offsetTop,
+            itemScrollTop = listHeight / 2 - itemTop - itemHeight / 2,
+            posY = itemScrollTop > 0
+              ? 0
+              : itemScrollTop + wrapperHeight < listHeight
+                ? listHeight - wrapperHeight
+                : itemScrollTop;
+          this.$refs.lyricList.scrollTo(0, posY);
         });
       }
     },
