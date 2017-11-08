@@ -20,14 +20,14 @@
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
         <div class="middle">
-          <div class="middle-l" ref="middleL">
+          <div class="middle-l" ref="middleL" @touchstart="touchstart">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" ref="normalImage">
                 <img class="image" :class="rotating" :src="currentSong.image">
               </div>
             </div>
             <div class="playing-lyric-wrapper">
-              <div class="playing-lyric">{{currentLyric[currentLineNum].text}}</div>
+              <div class="playing-lyric">{{currentLyric[currentLineNum] && currentLyric[currentLineNum].text}}</div>
             </div>
           </div>
           <scroll class="middle-r" ref="lyricList" :data="currentLyric">
@@ -286,6 +286,9 @@
       changeMode() {
         const mode = (this.mode + 1) % 3;
         this.setMode(mode);
+      },
+      touchstart(e) {
+        console.log(e);
       },
       _setCurrentIndex(songList) {
         songList.some((song, index) => {

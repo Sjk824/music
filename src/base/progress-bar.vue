@@ -2,12 +2,12 @@
   <div class="progress-bar" ref="progressBar" @click="progressClick">
     <div class="bar-inner" ref="barInner">
       <div class="progress" ref="progress"></div>
-      <div class="progress-btn-wrapper"
+      <div class="progress-btn-wrapper"  ref="progressBtn" 
            @touchstart.prevent="progressTouchStart"
            @touchmove.prevent="progressTouchMove"
            @touchend="progressTouchEnd"
       >
-        <div class="progress-btn" ref="progressBtn"></div>
+        <div class="progress-btn"></div>
       </div>
     </div>
   </div>
@@ -25,13 +25,20 @@
     },
     methods: {
       progressClick(e) {
-        const translateX = e.pageX - this.$refs.barInner.getBoundingClientRect().left;
-        this.$emit('progress', translateX / this.barWidth);
+        const translateX = e.pageX - this.$refs.barInner.getBoundingClientRect().left,
+          initPercent = translateX / this.barWidth,
+          percent = initPercent < 0
+            ? 0
+            : initPercent > 1
+              ? 1
+              : initPercent;
+        this.$emit('progress', percent);
       },
       progressTouchStart(e) {
         if(e.touches.length > 1) {
           return;
         };
+        this.translateX = null;
         this.touching = true;
       },
       progressTouchMove(e) {
@@ -50,7 +57,7 @@
         this.$refs.progressBtn.style.transform = `translateX(${this.translateX}px)`;
       },
       progressTouchEnd(e) {
-        if(!this.touching) {
+        if(!this.touching || this.translateX == null) {
           return;
         }
         this.$emit('progress', this.translateX / this.barWidth);
