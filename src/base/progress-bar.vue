@@ -58,6 +58,7 @@
       },
       progressTouchEnd(e) {
         if(!this.touching || this.translateX == null) {
+          this.touching = false;
           return;
         }
         this.$emit('progress', this.translateX / this.barWidth);

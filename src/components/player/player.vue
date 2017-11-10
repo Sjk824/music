@@ -19,8 +19,12 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle">
-          <div class="middle-l" ref="middleL" @touchstart="touchstart">
+        <div class="middle" :class="{'right': showLyric}" ref="middle" 
+          @touchstart.prevent.stop="touchstart"
+          @touchmove.prevent.stop="touchmove"
+          @touchend.prevent.stop="touchend"
+        >
+          <div class="middle-l" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" ref="normalImage">
                 <img class="image" :class="rotating" :src="currentSong.image">
@@ -44,8 +48,8 @@
         </div>
         <div class="bottom">
           <div class="dot-wrapper">
-            <span class="dot active"></span>
-            <span class="dot"></span>
+            <span class="dot" :class="{'active': !showLyric}"></span>
+            <span class="dot" :class="{'active': showLyric}"></span>
           </div>
           <div class="progress-wrapper">
             <span class="time time-l">{{currentTiming}}</span>
@@ -106,7 +110,8 @@
       return {
         songReady: false,
         currentTime: 0,
-        currentLyric: []
+        currentLyric: [],
+        showLyric: false
       };
     },
     computed: {
@@ -288,7 +293,34 @@
         this.setMode(mode);
       },
       touchstart(e) {
-        console.log(e);
+        this.touchInitX = e.touches[0].pageX;
+        this.middleLeft = this.$refs.middle.getBoundingClientRect().left;
+        this.$refs.middle.style.transition = 'transform 0s';
+        this.touching = true;
+      },
+      touchmove(e) {
+        if(!this.touching)return;
+        const middleWidth = this.$refs.middle.clientWidth,
+          distanceX = e.touches[0].pageX - this.touchInitX,
+          posX = distanceX + this.middleLeft,
+          translateX = posX < -middleWidth
+            ? -middleWidth
+            : posX > 0
+              ? 0
+              : posX;
+        this.$refs.middle.style.transform = `translate3d(${translateX}px, 0, 0)`;
+      },
+      touchend(e) {
+        if(!this.touching)return;
+        this.$refs.middle.style.transform = null;
+        const dis = e.changedTouches[0].pageX - this.touchInitX;
+        if(dis >= this.$refs.middle.clientWidth/4) {
+          this.showLyric = false;
+        }
+        if(dis < -this.$refs.middle.clientWidth/4) {
+          this.showLyric = true;
+        }
+        this.$refs.middle.style.transition = null;
       },
       _setCurrentIndex(songList) {
         songList.some((song, index) => {
@@ -424,6 +456,10 @@
         bottom: 170px
         white-space: nowrap
         font-size: 0
+        transform: translateX(0)
+        transition: transform 0.3s
+        &.right
+          transform: translate3d(-100%, 0, 0)
         .middle-l
           display: inline-block
           vertical-align: top
