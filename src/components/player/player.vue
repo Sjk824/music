@@ -19,12 +19,12 @@
           <h1 class="title" v-html="currentSong.name"></h1>
           <h2 class="subtitle" v-html="currentSong.singer"></h2>
         </div>
-        <div class="middle" :class="{'right': showLyric}" ref="middle" 
-          @touchstart.prevent.stop="touchstart"
-          @touchmove.prevent.stop="touchmove"
-          @touchend.prevent.stop="touchend"
+        <div class="middle" ref="middle" 
+          @touchstart="touchstart"
+          @touchmove="touchmove"
+          @touchend="touchend"
         >
-          <div class="middle-l" ref="middleL">
+          <div class="middle-l" :class="{'right': showLyric}" ref="middleL">
             <div class="cd-wrapper" ref="cdWrapper">
               <div class="cd" ref="normalImage">
                 <img class="image" :class="rotating" :src="currentSong.image">
@@ -34,7 +34,7 @@
               <div class="playing-lyric">{{currentLyric[currentLineNum] && currentLyric[currentLineNum].text}}</div>
             </div>
           </div>
-          <scroll class="middle-r" ref="lyricList" :data="currentLyric">
+          <scroll class="middle-r" :class="{'right': showLyric}" ref="lyricList" :data="currentLyric">
             <div class="lyric-wrapper" ref="lyricWrapper">
               <div v-if="currentLyric">
                 <p ref="lyricLine"
@@ -101,9 +101,13 @@
 
 <script>
   import {mapGetters, mapMutations} from 'vuex';
+  import {prefixStyle} from 'common/js/dom';
   import Scroll from 'base/scroll';
   import ProgressBar from 'base/progress-bar';
   import {playMode} from 'common/js/config';
+
+  const transformPrefix = prefixStyle('transform'),
+    transitionPrefix = prefixStyle('transition');
 
   export default {
     data() {
@@ -212,23 +216,23 @@
       },
       enter() {
         const transformArgs = this.transformArgs();
-        this.$refs.normalImage.style.transform = `translate3d(${transformArgs.transformX}px, ${transformArgs.transformY}px, 0) scale(${transformArgs.scale})`;
+        this.$refs.normalImage.style[transformPrefix] = `translate3d(${transformArgs.transformX}px, ${transformArgs.transformY}px, 0) scale(${transformArgs.scale})`;
         /* eslint-disable no-unused-vars */
         let rh = this.$refs.normalImage.offsetHeight;// 触发重绘
-        this.$refs.normalImage.style.transition = 'all 0.4s linear';
-        this.$refs.normalImage.style.transform = 'translate3d( 0px, 0px, 0) scale(1)';
+        this.$refs.normalImage.style[transitionPrefix] = 'all 0.4s linear';
+        this.$refs.normalImage.style[transformPrefix] = 'translate3d( 0px, 0px, 0) scale(1)';
       },
       leave() {
         this.$nextTick(() => {
-          this.$refs.normalImage.style.transform = 'translate3d( 0px, 0px, 0) scale(1)';
+          this.$refs.normalImage.style[transformPrefix] = 'translate3d( 0px, 0px, 0) scale(1)';
           const transformArgs = this.transformArgs();
-          this.$refs.normalImage.style.transition = 'all 0.4s linear';
-          this.$refs.normalImage.style.transform = `translate3d(${transformArgs.transformX}px, ${transformArgs.transformY}px, 0) scale(${transformArgs.scale})`;
+          this.$refs.normalImage.style[transitionPrefix] = 'all 0.4s linear';
+          this.$refs.normalImage.style[transformPrefix] = `translate3d(${transformArgs.transformX}px, ${transformArgs.transformY}px, 0) scale(${transformArgs.scale})`;
         });
       },
       initialPosition() {
-        this.$refs.normalImage.style.transition = '';
-        this.$refs.normalImage.style.transform = 'translate3d( 0px, 0px, 0) scale(1)';
+        this.$refs.normalImage.style[transitionPrefix] = '';
+        this.$refs.normalImage.style[transformPrefix] = 'translate3d( 0px, 0px, 0) scale(1)';
       },
       togglePlaying() {
         this.setPlayingState(!this.playing);
@@ -263,7 +267,7 @@
       },
       random() {
         const len = this.playList.length;
-        if(len === 0) {
+        if(len === 1) {
           this.loop();
           return;
         };
@@ -275,8 +279,13 @@
       },
       next() {
         if(!this.songReady) return;
+        const len = this.playList.length;
+        if(len === 1) {
+          this.loop();
+          return;
+        };
         let index = this.currentIndex + 1;
-        if(index === this.playList.length){
+        if(index === len){
           index = 0;
         };
         this.setCurrentIndex(index);
@@ -294,33 +303,39 @@
       },
       touchstart(e) {
         this.touchInitX = e.touches[0].pageX;
-        this.middleLeft = this.$refs.middle.getBoundingClientRect().left;
-        this.$refs.middle.style.transition = 'transform 0s';
+        this.middleLeft = this.$refs.lyricList.$el.getBoundingClientRect().left;
+        this.$refs.lyricList.$el.style[transitionPrefix] = 'transform 0s';
+        this.$refs.middleL.style[transitionPrefix] = 'opacity 0s';
         this.touching = true;
       },
       touchmove(e) {
         if(!this.touching)return;
-        const middleWidth = this.$refs.middle.clientWidth,
+        const middleWidth = this.$refs.middleL.clientWidth,
           distanceX = e.touches[0].pageX - this.touchInitX,
-          posX = distanceX + this.middleLeft,
+          posX = distanceX + (this.middleLeft - middleWidth),
           translateX = posX < -middleWidth
             ? -middleWidth
             : posX > 0
               ? 0
               : posX;
-        this.$refs.middle.style.transform = `translate3d(${translateX}px, 0, 0)`;
+        this.$refs.middleL.style.opacity = (middleWidth - Math.abs(translateX) ) / middleWidth;
+        this.$refs.lyricList.$el.style[transformPrefix] = `translate3d(${translateX}px, 0, 0)`;
       },
       touchend(e) {
         if(!this.touching)return;
-        this.$refs.middle.style.transform = null;
+        this.$refs.lyricList.$el.style[transformPrefix] = null;
         const dis = e.changedTouches[0].pageX - this.touchInitX;
-        if(dis >= this.$refs.middle.clientWidth/4) {
-          this.showLyric = false;
-        }
-        if(dis < -this.$refs.middle.clientWidth/4) {
-          this.showLyric = true;
-        }
-        this.$refs.middle.style.transition = null;
+        this.$refs.lyricList.$el.style[transitionPrefix] = null;
+        this.$refs.middleL.style.opacity = null;
+        this.$refs.middleL.style[transitionPrefix] = null;
+        this.$nextTick(() => {
+          if(dis >= this.$refs.lyricList.$el.clientWidth/4) {
+            this.showLyric = false;
+          }
+          if(dis < -this.$refs.lyricList.$el.clientWidth/4) {
+            this.showLyric = true;
+          }
+        });
       },
       _setCurrentIndex(songList) {
         songList.some((song, index) => {
@@ -359,12 +374,15 @@
         if(newSong.id === oldSong.id) {
           return;
         };
-        this.$nextTick(() => {
+        // 设置延时，保证从后台切换过来后还可以正常播放
+        setTimeout(() => {
           this.$refs.audio.play();
           newSong.getLyric().then((lyric) => {
             this.currentLyric = this._lyricFormat(lyric);
+          }).catch(() => {
+            this.currentLyric = [];
           });
-        });
+        }, 600);
       },
       playing(val) {
         this.$nextTick(() => {
@@ -390,7 +408,7 @@
               : itemScrollTop + wrapperHeight < listHeight
                 ? listHeight - wrapperHeight
                 : itemScrollTop;
-          this.$refs.lyricList.scrollTo(0, posY);
+          this.$refs.lyricList.scrollTo(0, posY, 500);
         });
       }
     },
@@ -457,9 +475,6 @@
         white-space: nowrap
         font-size: 0
         transform: translateX(0)
-        transition: transform 0.3s
-        &.right
-          transform: translate3d(-100%, 0, 0)
         .middle-l
           display: inline-block
           vertical-align: top
@@ -467,6 +482,9 @@
           width: 100%
           height: 0
           padding-top: 80%
+          transition: opacity 0.3s
+          &.right
+            opacity: 0
           .cd-wrapper
             position: absolute
             left: 10%
@@ -507,6 +525,9 @@
           width: 100%
           height: 100%
           overflow: hidden
+          transition: transform 0.3s
+          &.right
+            transform: translate3d(-100%, 0, 0)
           .lyric-wrapper
             width: 80%
             margin: 0 auto
