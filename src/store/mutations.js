@@ -21,6 +21,12 @@ const mutations = {
   },
   [types.SET_CURRENT_INDEX](state, index){
     state.currentIndex = index;
+  },
+  [types.SET_DISC_SONG_LIST](state, discSongList){
+    state.discSongList = discSongList;
+  },
+  [types.SET_DISC](state, disc){
+    state.disc = disc;
   }
 };
 

@@ -32,11 +32,13 @@
   import Scroll from 'base/scroll';
   import {addClass,removeClass,prefixStyle} from 'common/js/dom';
   import Loading from 'base/loading';
+  import {playListMixin} from 'common/js/mixin';
   import {mapActions} from 'vuex';
 
   const transformPrefix = prefixStyle('transform');
 
   export default {
+    mixins: [playListMixin],
     props: {
       bgImage: {
         type: String,
@@ -70,6 +72,11 @@
       }
     },
     methods: {
+      handlePlayList(playList) {
+        const bottom = playList.length > 0 ? '60px' : '';
+        this.$refs.list.$el.style.bottom = bottom;
+        this.$refs.list.refresh();
+      },
       back() {
         this.$router.back();
       },

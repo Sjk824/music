@@ -81,8 +81,9 @@
           fixedTitle.style.top = '0px';
           return;
         }
-        if( val >= this.listGroupHeight[this.currentIndex] && val < this.listGroupHeight[this.currentIndex+1] - TITLE_HEIGHT){
-          fixedTitle.style.top !== '0px' ? fixedTitle.style.top = '0px' : null;
+        // -1是为了确保位于边界的时候也能正常展示，点击右侧导航条会scroll到边界
+        if( val >= this.listGroupHeight[this.currentIndex] - 1 && val < this.listGroupHeight[this.currentIndex+1] - 1 - TITLE_HEIGHT){
+          fixedTitle.style.top = '0px';
         }else{
           fixedTitle.style.top = this.listGroupHeight[this.currentIndex+1] - val -TITLE_HEIGHT + 'px';
         }
@@ -125,7 +126,8 @@
         const scrollTop = this.$refs.listUl.scrollTop;
         this.scrollY = scrollTop; // 记录当前滚动的位置
         this.listGroupHeight.some((height,index) => {
-          if(scrollTop >= height && (scrollTop < this.listGroupHeight[index + 1] || index === this.listGroupHeight.length-1) ){
+          // -1是为了确保位于边界的时候也能正常展示，点击右侧导航条会scroll到边界
+          if(scrollTop >= height - 1 && (scrollTop < this.listGroupHeight[index + 1] - 1 || index === this.listGroupHeight.length-1) ){
             this.currentIndex = index;
             return true;
           }

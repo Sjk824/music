@@ -1,5 +1,5 @@
 <template>
-  <div class="recommend">
+  <div class="recommend" ref="recommend">
     <div class="recommend-content noscroll-bar" ref="recommendContent">
       <div v-if="recommends.length" class="slider-wrapper " ref="sliderWrapper">
         <Slider>
@@ -28,6 +28,7 @@
         <Loading></Loading>
       </div>
     </div>
+    <router-view></router-view>
   </div>
 </template>
 
@@ -36,8 +37,11 @@
   import {ERR_OK} from 'api/config';
   import Slider from 'base/slider';
   import Loading from 'base/loading';
+  import {playListMixin} from 'common/js/mixin';
+  import {mapMutations} from 'vuex';
 
   export default {
+    mixins: [playListMixin],
     data() {
       return {
         recommends: [],
@@ -56,6 +60,10 @@
       this.$refs.recommendContent.scrollTop = this.scrollY;
     },
     methods: {
+      handlePlayList(playList) {
+        const bottom = playList.length > 0 ? '60px' : '';
+        this.$refs.recommend.style.bottom = bottom;
+      },
       _recommend() {
         getRecommend().then( (res) => {
           if(res.code === ERR_OK){
@@ -75,7 +83,15 @@
           this.scrollY = this.$refs.recommendContent.scrollTop;
         }, false);
       },
-      selectItem(item) {}
+      selectItem(item) {
+        this.setDisc(item);
+        this.$router.push({
+          path: `/recommend/${item.dissid}`
+        });
+      },
+      ...mapMutations({
+        setDisc: 'SET_DISC'
+      })
     },
     components: {
       Slider,
