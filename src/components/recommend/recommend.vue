@@ -73,7 +73,7 @@
       },
       _discList() {
         getDiscList().then( (res) => {
-          if(res.code === 0){
+          if(res.code === ERR_OK){
             this.discList = res.data.list;
           }
         });

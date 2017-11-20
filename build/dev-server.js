@@ -49,7 +49,6 @@ apiRoutes.get('/getDiscSongList', function (req, res) {
     },
     params: req.query
   }).then((response) => {
-    console.log(response)
     res.json(response.data)
   }).catch((e) => {
     console.log(e)

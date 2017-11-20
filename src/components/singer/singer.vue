@@ -10,6 +10,7 @@
   import {ERR_OK} from 'api/config';
   import Listview from '../listview/listview';
   import {playListMixin} from 'common/js/mixin';
+  import Singer from 'common/js/singer';
   import {mapMutations} from 'vuex';
 
   const HOT_SINGER_LEN = 10;
@@ -52,10 +53,7 @@
         };
         list.forEach((item,index) => {
           if(index < HOT_SINGER_LEN){
-            map.hot.items.push(new Singer({
-              name: item.Fsinger_name,
-              id: item.Fsinger_mid
-            }));
+            map.hot.items.push(new Singer(item.Fsinger_mid,item.Fsinger_name));
           }
           const key = item.Findex;
           if(map[key] == null){
@@ -64,10 +62,7 @@
               items: []
             };
           }
-          map[key].items.push(new Singer({
-            name: item.Fsinger_name,
-            id: item.Fsinger_mid
-          }));
+          map[key].items.push(new Singer(item.Fsinger_mid,item.Fsinger_name));
         });
         let hot = [],
           ret = [];
@@ -91,14 +86,6 @@
     components: {
       Listview
     }
-  };
-
-  class Singer{
-    constructor({id,name}){
-      this.name = name;
-      this.id = id;
-      this.avatar = `https://y.gtimg.cn/music/photo_new/T001R300x300M000${id}.jpg?max_age=2592000`;
-    };
   };
 
 </script>
