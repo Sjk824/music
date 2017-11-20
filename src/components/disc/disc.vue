@@ -27,19 +27,19 @@ import MusicList from 'components/music-list/music-list';
     },
     methods: {
       _getDetail() {
-        if(!this.disc.dissid){
+        if(!this.disc || !this.disc.dissid){
           this.$router.push('/recommend');
           return;
         }
-        return getDiscSongList(this.disc.dissid).then((res) => {
+        getDiscSongList(this.disc.dissid).then((res) => {
           if(res.code === ERR_OK){
-            this.songs = this._normalizeSongs(res.data.list);
+            this.songs = this._normalizeSongs(res.cdlist[0].songlist);
           }
         });
       },
       _normalizeSongs(list) {
         let songs = [];
-        list.forEach(({musicData}) => {
+        list.forEach((musicData) => {
           if (musicData.songid && musicData.albummid){
             songs.push(createSong(musicData));
           }
