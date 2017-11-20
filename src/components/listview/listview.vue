@@ -1,6 +1,6 @@
 <template>
   <div class="listview" ref="listview">
-    <ul class="list-ul noscroll-bar" ref="listUl">
+    <ul class="list-ul noscroll-bar" ref="listUl" @scroll="calcCurrentIndex">
       <li v-for="group in data" class="list-group" ref="listGroup">
         <h2 class="list-group-title">{{group.title}}</h2>
         <uL>
@@ -44,9 +44,6 @@
         currentIndex: 0,
         scrollY: 0
       };
-    },
-    mounted() {
-      this.$nextTick(this._listenerScroll);
     },
     activated() {
       this.$refs.listUl.scrollTop = this.scrollY;
@@ -119,10 +116,7 @@
         this.$refs.listUl.scrollTop = this.listGroupHeight[index];
         this.scrollY = this.listGroupHeight[index]; // 记录当前滚动的位置
       },
-      _listenerScroll() {
-        this.$refs.listUl.addEventListener('scroll', this._calcCurrentIndex, false);
-      },
-      _calcCurrentIndex() {
+      calcCurrentIndex() {
         const scrollTop = this.$refs.listUl.scrollTop;
         this.scrollY = scrollTop; // 记录当前滚动的位置
         this.listGroupHeight.some((height,index) => {

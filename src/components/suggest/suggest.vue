@@ -25,9 +25,9 @@
   import Loading from 'base/loading';
   import {ERR_OK} from 'api/config';
   import {search} from 'api/search';
-  import {filterSinger} from 'common/js/song';
+  import {filterSinger,createSong} from 'common/js/song';
   import Singer from 'common/js/singer';
-  import {mapMutations} from 'vuex';
+  import {mapMutations,mapGetters,mapActions} from 'vuex';
 
   export default {
     props: {
@@ -42,6 +42,12 @@
         hasMore: true,
         pageIndex: 1
       };
+    },
+    computed: {
+      ...mapGetters([
+        'playList',
+        'currentIndex'
+      ])
     },
     methods: {
       getIconCls(item) {
@@ -63,11 +69,26 @@
           this.$router.push({
             path: `/search/${item.singerid}`
           });
+        } else {
+          this.selectSong(item);
         }
+      },
+      selectSong(item) {
+        const song = createSong(item),
+          newPlayList = this.playList.slice();
+          newPlayList.splice(this.currentIndex + 1, 0, song);
+        console.log(song,this.currentIndex,newPlayList);
+        this.selectPlay({
+          list: newPlayList,
+          index: this.currentIndex + 1
+        });
       },
       ...mapMutations({
         setSinger: 'SET_SINGER'
-      })
+      }),
+      ...mapActions([
+        'selectPlay'
+      ])
     },
     watch: {
       query(val) {

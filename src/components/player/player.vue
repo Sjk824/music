@@ -36,12 +36,15 @@
           </div>
           <scroll class="middle-r" :class="{'right': showLyric}" ref="lyricList" :data="currentLyric">
             <div class="lyric-wrapper" ref="lyricWrapper">
-              <div v-if="currentLyric">
+              <div v-if="currentLyric.length>0">
                 <p ref="lyricLine"
                    class="text"
                    :class="{'current': currentLineNum ===index}"
                    v-for="(currentLine,index) in currentLyric"
                 >{{currentLine.text}}</p>
+              </div>
+              <div v-if="currentLyric.length===0">
+                <p class="text empty">暂无歌词</p>
               </div>
             </div>
           </scroll>
@@ -391,11 +394,11 @@
       },
       currentLineNum(val) {
         this.$nextTick(() => {
-          if(!this.$refs.lyricList.$el || !this.$refs.lyricLine) {
+          const lines = this.$refs.lyricLine;
+          if(!this.$refs.lyricList.$el || !this.$refs.lyricLine || !lines[val]) {
             return;
           };
-          const lines = this.$refs.lyricLine,
-            listHeight = this.$refs.lyricList.$el.clientHeight,
+          const listHeight = this.$refs.lyricList.$el.clientHeight,
             itemHeight = lines[val].clientHeight;
 
           if(itemHeight === 0)return;
