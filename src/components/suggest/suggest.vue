@@ -52,11 +52,14 @@
         }
       },
       getItemName(item) {
-        return `${filterSinger(item.singer)}${item.songname ? ' - ' + item.songname : ''}`;
+        if(item.type === TYPE_SINGER) {
+          return item.singername;
+        }
+        return `${filterSinger(item.singer)} - ${item.songname}`;
       },
       select(item) {
         if(item.type === TYPE_SINGER) {
-          this.setSinger(new Singer(item.singermid, item.singer[0].name));
+          this.setSinger(new Singer(item.singermid, item.singername));
           this.$router.push({
             path: `/search/${item.singerid}`
           });
@@ -76,12 +79,7 @@
               const zhida = res.data.zhida;
               let s = [];
               if(zhida.type === TYPE_SINGER) {
-                s[0] = {
-                  singerid: zhida.singerid,
-                  singermid: zhida.singermid,
-                  singer: [{name: zhida.singername}],
-                  type: zhida.type
-                };
+                s[0] = zhida;
               }
               this.result = s.concat(res.data.song.list);
             }
