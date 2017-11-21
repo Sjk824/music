@@ -7,6 +7,7 @@
 </template>
 
 <script>
+  const THROTTLE_TIME = 500;
   export default {
     props: {
       placeholder: {
@@ -16,7 +17,8 @@
     },
     data() {
       return {
-        query: ''
+        query: '',
+        throttle: null
       };
     },
     methods: {
@@ -29,7 +31,13 @@
     },
     watch: {
       query(val) {
-        this.$emit('query', val);
+        if (this.throttle) {
+          clearTimeout(this.throttle);
+        }
+        this.throttle = setTimeout(() => {
+          this.$emit('query', this.query.trim());
+          this.throttle = null;
+        }, THROTTLE_TIME);
       }
     }
     // created() {

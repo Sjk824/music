@@ -143,6 +143,8 @@
         this.pageIndex = 1;
         if(val !== ''){
           this.searchQuery();
+        } else {
+          this.result = [];
         }
       }
     },
