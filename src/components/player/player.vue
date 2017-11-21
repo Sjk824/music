@@ -394,11 +394,12 @@
       },
       currentLineNum(val) {
         this.$nextTick(() => {
-          const lines = this.$refs.lyricLine;
-          if(!this.$refs.lyricList.$el || !this.$refs.lyricLine || !lines[val]) {
+          const lines = this.$refs.lyricLine,
+            lyricList = this.$refs.lyricList.$el;
+          if(!lyricList || !lines || !lines[val]) {
             return;
           };
-          const listHeight = this.$refs.lyricList.$el.clientHeight,
+          const listHeight = lyricList.clientHeight,
             itemHeight = lines[val].clientHeight;
 
           if(itemHeight === 0)return;

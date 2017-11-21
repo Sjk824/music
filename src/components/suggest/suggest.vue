@@ -1,6 +1,7 @@
 <template>
   <div ref="suggest"
-    class="suggest"
+    class="suggest noscroll-bar"
+    @scroll="scroll"
   >
     <ul class="suggest-list">
       <li class="suggest-item" v-for="item in result" @click="select(item)">
@@ -11,7 +12,7 @@
           <p class="text" v-html="getItemName(item)"></p>
         </div>
       </li>
-      <loading v-show="hasMore" title=""></loading>
+      <loading v-show="hasMore" ref="hasMore"></loading>
     </ul>
     <div v-show="!hasMore && !result.length" class="no-result-wrapper">
     </div>
@@ -40,7 +41,8 @@
       return {
         result: [],
         hasMore: true,
-        pageIndex: 1
+        pageIndex: 1,
+        onSearching: false
       };
     },
     computed: {
@@ -50,6 +52,13 @@
       ])
     },
     methods: {
+      scroll() {
+        if(!this.hasMore || this.onSearching)return;
+        const topPos = this.$refs.hasMore.$el.offsetTop - this.$refs.suggest.scrollTop;
+        if(topPos < this.$refs.suggest.clientHeight) {
+          this.searchQuery();
+        }
+      },
       getIconCls(item) {
         if (item.type === TYPE_SINGER) {
           return 'icon-mine';
@@ -73,18 +82,57 @@
           this.selectSong(item);
         }
       },
+      searchQuery() {
+        this.onSearching = true;
+        search(this.query, this.pageIndex, true, PER_PAGE).then((res) => {
+          if(res.code === ERR_OK){
+            const zhida = res.data.zhida;
+            let s = [];
+            if(zhida.type === TYPE_SINGER && this.pageIndex === 1) {
+              s[0] = zhida;
+            }
+            if(res.data.song.list.length < PER_PAGE) {
+              this.hasMore = false;
+            } else {
+              this.hasMore = true;
+            }
+            if(this.pageIndex === 1) {
+              // 确保pageIndex为1时得到的得到的数据不受之前的this.result的影响
+              this.result = s.concat(res.data.song.list);
+            } else {
+              this.result = this.result.concat(s.concat(res.data.song.list));
+            }
+          }
+          //请求成功后再增加this.pageIndex，确保在有网络错误的情况下this.pageIndex的正确
+          this.pageIndex = this.pageIndex + 1;
+          this.onSearching = false;
+        }).catch(() => {
+          this.onSearching = false;
+        });
+      },
       selectSong(item) {
+        let cIndex;
+        const hasSong = this.playList.some((song, index) => {
+          if(song.id === item.songid) {
+            cIndex = index;
+            return true;
+          }
+        });
+        if(hasSong) {
+          this.setCurrentIndex(cIndex);
+          return;
+        }
         const song = createSong(item),
           newPlayList = this.playList.slice();
           newPlayList.splice(this.currentIndex + 1, 0, song);
-        console.log(song,this.currentIndex,newPlayList);
         this.selectPlay({
           list: newPlayList,
           index: this.currentIndex + 1
         });
       },
       ...mapMutations({
-        setSinger: 'SET_SINGER'
+        setSinger: 'SET_SINGER',
+        setCurrentIndex: 'SET_CURRENT_INDEX'
       }),
       ...mapActions([
         'selectPlay'
@@ -92,19 +140,9 @@
     },
     watch: {
       query(val) {
-        if(val === '') {
-          this.result = [];
-        } else {
-          search(this.query, this.pageIndex, true, PER_PAGE).then((res) => {
-            if(res.code === ERR_OK){
-              const zhida = res.data.zhida;
-              let s = [];
-              if(zhida.type === TYPE_SINGER) {
-                s[0] = zhida;
-              }
-              this.result = s.concat(res.data.song.list);
-            }
-          });
+        this.pageIndex = 1;
+        if(val !== ''){
+          this.searchQuery();
         }
       }
     },
@@ -120,7 +158,7 @@
 
   .suggest
     height: 100%
-    overflow: hidden
+    overflow: auto
     .suggest-list
       padding: 0 30px
       .suggest-item

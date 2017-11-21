@@ -74,11 +74,16 @@
   @import "~common/stylus/mixin"
 
   .search
+    position: absolute
+    top: 88px
+    bottom: 0
+    left: 0
+    right: 0
     .search-box-wrapper
       margin: 20px
     .shortcut-wrapper
-      position: fixed
-      top: 178px
+      position: absolute
+      top: 98px
       bottom: 0
       width: 100%
       .shortcut
@@ -115,8 +120,8 @@
                 font-size: $font-size-medium
                 color: $color-text-d
     .search-result
-      position: fixed
+      position: absolute
       width: 100%
-      top: 178px
+      top: 98px
       bottom: 0
 </style>
