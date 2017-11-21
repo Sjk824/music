@@ -1,5 +1,5 @@
 <template>
-  <div class="search">
+  <div class="search" ref="search">
     <div class="search-box-wrapper">
       <search-box ref="searchBox" @query="changeQuery"></search-box>
     </div>
@@ -37,8 +37,10 @@
   import {ERR_OK} from 'api/config';
   import Suggest from 'components/suggest/suggest';
   import {getHotKey} from 'api/search';
+  import {playListMixin} from 'common/js/mixin';
 
   export default {
+    mixins: [playListMixin],
     data() {
       return {
         query: '',
@@ -54,6 +56,10 @@
       });
     },
     methods: {
+      handlePlayList(playList) {
+        const bottom = playList.length > 0 ? '60px' : '';
+        this.$refs.search.style.bottom = bottom;
+      },
       selectHot(hotTitle) {
         this.$refs.searchBox.setQuery(hotTitle);
       },
