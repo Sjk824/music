@@ -15,6 +15,7 @@
       <loading v-show="hasMore" ref="hasMore"></loading>
     </ul>
     <div v-show="!hasMore && !result.length" class="no-result-wrapper">
+      <no-result></no-result>
     </div>
   </div>
 </template>
@@ -24,6 +25,7 @@
     PER_PAGE = 20;
 
   import Loading from 'base/loading';
+  import NoResult from 'base/no-result';
   import {ERR_OK} from 'api/config';
   import {search} from 'api/search';
   import {filterSinger,createSong} from 'common/js/song';
@@ -145,11 +147,13 @@
           this.searchQuery();
         } else {
           this.result = [];
+          this.hasMore = true;
         }
       }
     },
     components: {
-      Loading
+      Loading,
+      NoResult
     }
   };
 </script>

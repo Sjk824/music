@@ -55,7 +55,6 @@
     },
     methods: {
       selectHot(hotTitle) {
-        this.query = hotTitle;
         this.$refs.searchBox.setQuery(hotTitle);
       },
       changeQuery(val) {
@@ -83,7 +82,7 @@
       margin: 20px
     .shortcut-wrapper
       position: absolute
-      top: 98px
+      top: 90px
       bottom: 0
       width: 100%
       .shortcut
@@ -122,6 +121,6 @@
     .search-result
       position: absolute
       width: 100%
-      top: 98px
+      top: 90px
       bottom: 0
 </style>

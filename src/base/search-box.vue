@@ -18,7 +18,8 @@
     data() {
       return {
         query: '',
-        throttle: null
+        throttle: null,
+        immediately: false
       };
     },
     methods: {
@@ -26,18 +27,30 @@
         this.query = '';
       },
       setQuery(query) {
+        this.immediately = true;
         this.query = query;
-      }
-    },
-    watch: {
-      query(val) {
+      },
+      searchQuery() {
         if (this.throttle) {
           clearTimeout(this.throttle);
         }
+        if (this.immediately || this.query.trim() === '') {
+          this._searching();
+          this.immediately = false;
+          return;
+        }
         this.throttle = setTimeout(() => {
-          this.$emit('query', this.query.trim());
-          this.throttle = null;
+          this._searching();
         }, THROTTLE_TIME);
+      },
+      _searching() {
+        this.$emit('query', this.query.trim());
+        this.throttle = null;
+      }
+    },
+    watch: {
+      query() {
+        this.searchQuery();
       }
     }
     // created() {
