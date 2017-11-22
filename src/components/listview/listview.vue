@@ -29,8 +29,10 @@
 
 <script>
   import Loading from 'base/loading';
+  import {prefixStyle} from 'common/js/dom';
   const HOT = '热',
-    TITLE_HEIGHT = 29;
+    TITLE_HEIGHT = 29,
+    prefixTransform = prefixStyle('transform');
 
   export default {
     props: {
@@ -75,14 +77,14 @@
       scrollY(val) {
         const fixedTitle = this.$refs.fixedTitle;
         if(this.currentIndex === this.listGroupHeight.length - 1){
-          fixedTitle.style.top = '0px';
+          fixedTitle.style[prefixTransform] = 'translateY(0px)';
           return;
         }
         // -1是为了确保位于边界的时候也能正常展示，点击右侧导航条会scroll到边界
         if( val >= this.listGroupHeight[this.currentIndex] - 1 && val < this.listGroupHeight[this.currentIndex+1] - 1 - TITLE_HEIGHT){
-          fixedTitle.style.top = '0px';
+          fixedTitle.style[prefixTransform] = 'translateY(0px)';
         }else{
-          fixedTitle.style.top = this.listGroupHeight[this.currentIndex+1] - val -TITLE_HEIGHT + 'px';
+          fixedTitle.style[prefixTransform] = `translateY(${this.listGroupHeight[this.currentIndex+1] - val -TITLE_HEIGHT + 'px'})`;
         }
       }
     },

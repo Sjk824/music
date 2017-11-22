@@ -14,6 +14,7 @@
 </template>
 
 <script>
+import {mapMutations} from 'vuex';
   export default {
     props: {
       percent: 0
@@ -32,6 +33,7 @@
             : initPercent > 1
               ? 1
               : initPercent;
+        this.setPlaying(true);
         this.$emit('progress', percent);
       },
       progressTouchStart(e) {
@@ -63,7 +65,10 @@
         }
         this.$emit('progress', this.translateX / this.barWidth);
         this.touching = false;
-      }
+      },
+      ...mapMutations({
+        setPlaying: 'SET_PLAYING'
+      })
     },
     watch: {
       percent(val) {
