@@ -100,6 +100,7 @@
             }
             if(this.pageIndex === 1) {
               // 确保pageIndex为1时得到的得到的数据不受之前的this.result的影响
+              this.$refs.suggest.scrollTop = 0;
               this.result = s.concat(res.data.song.list);
             } else {
               this.result = this.result.concat(s.concat(res.data.song.list));
