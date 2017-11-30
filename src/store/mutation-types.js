@@ -17,3 +17,5 @@ export const SET_CURRENT_SONG = 'SET_CURRENT_SONG';
 export const SET_DISC_SONG_LIST = 'SET_DISC_SONG_LIST';
 
 export const SET_DISC = 'SET_DISC';
+
+export const SET_SEARCH_HISTORY = 'SET_SEARCH_HISTORY';

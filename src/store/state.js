@@ -1,4 +1,5 @@
 import {playMode} from 'common/js/config';
+import {getSearch} from 'common/js/searchHistory';
 
 const state = {
   singer: {},
@@ -9,7 +10,8 @@ const state = {
   mode: playMode.sequence,
   currentIndex: -1,
   discSongList: [],
-  disc: null
+  disc: null,
+  searchHistory: getSearch()
 };
 
 export default state;

@@ -17,10 +17,11 @@
           <div class="search-history" v-show="searchHistory.length">
             <h1 class="title">
               <span class="text">搜索历史</span>
-              <span class="clear">
+              <span class="clear" @click="clearItems">
                 <i class="icon-clear"></i>
               </span>
             </h1>
+            <search-history :searchHistory="searchHistory" @select="selectItem" @delete="deleteItem"></search-history>
           </div>
         </div>
       </div>
@@ -28,25 +29,33 @@
     <div class="search-result" v-show="query" ref="searchResult">
       <suggest ref="suggest" :query="query"></suggest>
     </div>
+    <confirm ref="confirm" :text="'确定要清空搜索历史吗？'" :confirmBtnText="'确定'" :cancelBtnText="'取消'" @cancle="cancleClear" @confirm="confirmClear"></confirm>
     <router-view></router-view>
   </div>
 </template>
 
 <script>
+  import Confirm from 'base/confirm';
   import SearchBox from 'base/search-box';
   import {ERR_OK} from 'api/config';
   import Suggest from 'components/suggest/suggest';
+  import SearchHistory from 'components/search-history/search-history';
   import {getHotKey} from 'api/search';
   import {playListMixin} from 'common/js/mixin';
+  import {mapGetters,mapActions} from 'vuex';
 
   export default {
     mixins: [playListMixin],
     data() {
       return {
         query: '',
-        hotKey: [],
-        searchHistory: []
+        hotKey: []
       };
+    },
+    computed: {
+      ...mapGetters([
+        'searchHistory'
+      ])
     },
     created() {
       getHotKey().then((res) => {
@@ -65,16 +74,41 @@
       },
       changeQuery(val) {
         this.query = val;
-      }
+        if(val.trim() === '')return;
+        this.addSearchHistory(val);
+      },
+      clearItems() {
+        this.$refs.confirm.showFlag = true;
+      },
+      selectItem(item) {
+        this.$refs.searchBox.setQuery(item);
+      },
+      deleteItem(index) {
+        this.deleteSearchHistory(index);
+      },
+      cancleClear() {
+        this.$refs.confirm.showFlag = false;
+      },
+      confirmClear() {
+        this.$refs.confirm.showFlag = false;
+        this.clearSearchHistory();
+      },
+      ...mapActions([
+        'addSearchHistory',
+        'clearSearchHistory',
+        'deleteSearchHistory'
+      ])
     },
     components: {
+      Confirm,
       SearchBox,
-      Suggest
+      Suggest,
+      SearchHistory
     }
   };
 </script>
 
-<style lang="stylus" rel="stylesheet/stylus">
+<style scoped lang="stylus" rel="stylesheet/stylus">
   @import "~common/stylus/variable"
   @import "~common/stylus/mixin"
 
