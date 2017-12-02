@@ -11,7 +11,8 @@ const state = {
   currentIndex: -1,
   discSongList: [],
   disc: null,
-  searchHistory: getSearch()
+  searchHistory: getSearch(),
+  rankList: []
 };
 
 export default state;

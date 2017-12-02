@@ -20,6 +20,10 @@
       songs: {
         type: Array,
         default: []
+      },
+      rank: {
+        type: Boolean,
+        default: false
       }
     },
     methods: {
@@ -30,16 +34,18 @@
         return `${song.singer}·${song.album}`;
       },
       getRankCls(index) {
-        // if (index <= 2) {
-        //   return `icon icon${index}`;
-        // } else {
-        return 'text';
-        // }
+        if (this.rank && index <= 2) {
+          return `icon icon${index}`;
+        } else {
+          return 'text';
+        }
       },
       getRankText(index) {
-        // if (index > 2) {
-        return index + 1;
-        // }
+        if (!this.rank || index > 2) {
+          return index + 1;
+        } else {
+          return '';
+        }
       }
     }
   };

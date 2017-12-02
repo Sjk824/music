@@ -19,3 +19,5 @@ export const discSongList = state => state.discSongList;
 export const disc = state => state.disc;
 
 export const searchHistory = state => state.searchHistory;
+
+export const rankList = state => state.rankList;
