@@ -94,10 +94,11 @@
           <i @click.stop="togglePlaying" :class="miniIcon"></i>
         </div>
         <div class="control">
-          <i class="icon-playlist"></i>
+          <i @click.stop="showList" class="icon-playlist"></i>
         </div>
       </div>
     </transition>
+    <play-list :showFlag="showListFlag" @hide="hideList"></play-list>
     <audio :src="currentSong.url" ref = "audio" @canplay= "canPlay" @error="audioError" @timeupdate="timeUpdate" @ended="ended"></audio>
   </div>
 </template>
@@ -108,6 +109,7 @@
   import Scroll from 'base/scroll';
   import ProgressBar from 'base/progress-bar';
   import {playMode} from 'common/js/config';
+  import PlayList from 'components/play-list/play-list';
 
   const transformPrefix = prefixStyle('transform'),
     transitionPrefix = prefixStyle('transition');
@@ -118,7 +120,8 @@
         songReady: false,
         currentTime: 0,
         currentLyric: [],
-        showLyric: false
+        showLyric: false,
+        showListFlag: false
       };
     },
     computed: {
@@ -164,7 +167,6 @@
         'fullScreen',
         'playing',
         'playList',
-        'sequenceList',
         'mode',
         'currentSong',
         'currentIndex'
@@ -340,6 +342,12 @@
           }
         });
       },
+      showList() {
+        this.showListFlag = true;
+      },
+      hideList() {
+        this.showListFlag = false;
+      },
       _setCurrentIndex(songList) {
         songList.some((song, index) => {
           if(song.id === this.currentSong.id) {
@@ -379,6 +387,7 @@
         };
         // 设置延时，保证从后台切换过来后还可以正常播放
         setTimeout(() => {
+          if(typeof newSong.getLyric !== 'function') return;
           this.$refs.audio.play();
           newSong.getLyric().then((lyric) => {
             this.currentLyric = this._lyricFormat(lyric);
@@ -417,8 +426,9 @@
       }
     },
     components: {
-      Scroll: Scroll,
-      ProgressBar: ProgressBar
+      Scroll,
+      ProgressBar,
+      PlayList
     }
   };
 </script>
