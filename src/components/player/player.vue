@@ -99,7 +99,7 @@
       </div>
     </transition>
     <play-list :showFlag="showListFlag" @hide="hideList"></play-list>
-    <audio :src="currentSong.url" ref = "audio" @canplay= "canPlay" @error="audioError" @timeupdate="timeUpdate" @ended="ended"></audio>
+    <audio :src="currentSongUrl" ref = "audio" @canplay= "canPlay" @error="audioError" @timeupdate="timeUpdate" @ended="ended"></audio>
   </div>
 </template>
 
@@ -162,6 +162,9 @@
         };
         num = num === -1 ? 0 : num;
         return num;
+      },
+      currentSongUrl() {
+        return this.currentSong.mid ? `http://isure.stream.qqmusic.qq.com/C100${this.currentSong.mid}.m4a?fromtag=32` : null;
       },
       ...mapGetters([
         'fullScreen',
